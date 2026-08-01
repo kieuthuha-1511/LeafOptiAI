@@ -26,4 +26,3 @@ ultralytics==8.1.24
 # MÔI TRƯỜNG CHẠY THẬT (PRODUCTION SERVER - TÙY CHỌN)
 # ==========================================
 waitress==3.0.0
-reportlab
