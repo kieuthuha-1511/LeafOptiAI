@@ -1,0 +1,663 @@
+/* =========================================
+   BIẾN MÀU SẮC & CẤU HÌNH CƠ BẢN
+========================================= */
+:root {
+    --dark-green: #1b5e20;
+    --primary-green: #256e2b;
+    --light-green-bg: #eaf4eb;
+    --border-green: #d2e3d3;
+    --card-bg: #ffffff;
+    --gray-text: #666666;
+    --excel-green: #107c41;
+    --excel-green-hover: #0b5a2f;
+    --pdf-red: #d32f2f;
+}
+
+body {
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background-color: #eef5ef;
+    position: relative;
+    color: #333333;
+}
+
+/* Background lấy từ file background.jpg local */
+.app-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, rgba(220,235,221,0.8) 100%),
+                url('../images/background.jpg') no-repeat center center;
+    background-size: cover;
+    z-index: -1;
+}
+
+.dashboard-card {
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(12px);
+    border-radius: 20px;
+    padding: 25px 30px;
+    max-width: 1350px;
+    margin: 20px auto;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 10px 30px rgba(27, 94, 32, 0.08);
+}
+
+/* =========================================
+   HEADER
+========================================= */
+.logo-img {
+    height: 85px;
+    width: auto;
+    object-fit: contain;
+    border-radius: 50%;
+    background-color: #ffffff;
+    padding: 2px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+    transition: transform 0.3s ease;
+}
+
+.logo-img:hover {
+    transform: scale(1.05);
+}
+
+.dashboard-header {
+    justify-content: center !important; /* Gom logo và chữ vào giữa */
+    gap: 20px; /* Cập nhật khoảng cách nhỏ lại để logo sát vào text */
+}
+
+.main-title {
+    color: var(--dark-green);
+    font-size: 2.1rem;
+    letter-spacing: -0.5px;
+    font-weight: 700;
+}
+
+.sub-title {
+    color: var(--dark-green);
+    font-size: 1.05rem;
+}
+
+.author-title {
+    color: var(--dark-green);
+    font-size: 0.95rem;
+}
+
+/* =========================================
+   UPLOAD ZONE
+========================================= */
+.upload-zone {
+    border: 1.5px dashed var(--primary-green);
+    border-radius: 16px;
+    background-color: #fafdfa;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.upload-zone:hover, .upload-zone.dragover {
+    background-color: var(--light-green-bg);
+    border-color: var(--dark-green);
+}
+
+/* HIỆU ỨNG KHI KÉO THẢ ẢNH VÀO */
+.upload-zone.drag-active {
+    background-color: #e8f5e9 !important; /* Xanh lá nhạt */
+    border-color: #2e7d32 !important; /* Xanh lá đậm */
+    transform: scale(1.01);
+}
+
+.upload-icon-wrapper {
+    position: relative;
+    display: inline-block;
+    font-size: 2.5rem;
+    color: var(--primary-green);
+}
+
+.upload-arrow {
+    position: absolute;
+    font-size: 1.2rem;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -40%);
+    font-weight: bold;
+}
+
+.upload-heading {
+    color: var(--dark-green);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.upload-subtext {
+    font-size: 0.88rem;
+    color: var(--gray-text);
+}
+
+/* =========================================
+   IMAGE PANELS & HIỆU ỨNG QUÉT AI
+========================================= */
+.panel-card {
+    background: #ffffff;
+    border: 1px solid var(--border-green);
+    border-radius: 12px;
+    overflow: hidden;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.panel-card:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+}
+
+.panel-header {
+    background-color: var(--dark-green);
+    color: #ffffff;
+    padding: 8px 12px;
+    font-size: 0.92rem;
+    font-weight: 600;
+}
+
+.panel-body {
+    padding: 12px;
+    background-color: #ffffff;
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+}
+
+/* KHUNG CHỨA ẢNH - ĐỒNG BỘ CHIỀU CAO 280PX CẢ 3 Ô */
+.inner-placeholder-box {
+    border: 1px dashed #d0d7d1;
+    border-radius: 8px;
+    height: 280px !important;
+    min-height: 280px !important;
+    max-height: 280px !important;
+    width: 100% !important;
+    background-color: #fcfdfe;
+    position: relative;
+    overflow: hidden;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Khung chứa ảnh placeholder tùy chỉnh thêm */
+.image-placeholder-container {
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+.placeholder-img {
+    width: 60%;
+    max-width: 250px; 
+    max-height: 80%; 
+    height: auto;
+    opacity: 0.4;
+    filter: grayscale(100%);
+    object-fit: contain;
+}
+
+/* ẢNH HIỂN THỊ KẾT QUẢ/GỐC */
+.inner-placeholder-box img#origImg, 
+.inner-placeholder-box img#segImg, 
+.inner-placeholder-box img#maskImg {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain;
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: #ffffff;
+    z-index: 5;
+    cursor: zoom-in;
+    transition: transform 0.2s ease;
+}
+
+/* --- HIỆU ỨNG QUÉT AI --- */
+.scan-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.scan-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: #FF7043;
+    box-shadow: 0 0 10px #FF7043, 0 0 20px #FF7043;
+    animation: scanning 2s infinite linear;
+    display: none;
+    z-index: 10;
+}
+
+.scan-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1.1rem;
+    display: none;
+    z-index: 9;
+}
+
+@keyframes scanning {
+    0% { top: 0; }
+    50% { top: 100%; }
+    100% { top: 0; }
+}
+
+/* =========================================
+   RESULT ANALYZER & CANOPY STATUS
+========================================= */
+.result-analyzer-box {
+    border: 1px solid var(--border-green);
+    border-radius: 14px;
+    background-color: #ffffff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+}
+
+.result-title {
+    color: var(--dark-green);
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.title-icon {
+    font-size: 1.2rem;
+}
+
+.metric-card {
+    border: 1px solid #e5efe6;
+    border-radius: 10px;
+    background-color: #fafdfa;
+    transition: all 0.2s ease;
+}
+
+.metric-card:hover {
+    border-color: var(--border-green);
+    background-color: #f4fbf5;
+}
+
+.icon-circle {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background-color: var(--light-green-bg);
+    color: var(--primary-green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.metric-label {
+    font-size: 0.82rem;
+    color: var(--gray-text);
+    font-weight: 500;
+}
+
+.metric-value {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--dark-green);
+}
+
+.unit-text {
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.custom-progress-bar {
+    height: 7px;
+    background-color: #e0eae1;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.custom-progress-bar .progress-bar {
+    background-color: #a2d3a5 !important;
+    transition: width 0.8s ease;
+}
+
+.ticks-text {
+    font-size: 0.65rem;
+    color: #888888;
+}
+
+/* KHỦNG TRẠNG THÁI TÁN LÁ (CANOPY BADGE) */
+.canopy-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.canopy-badge.status-low {
+    background-color: #fde8e8;
+    color: #dc3545;
+    border: 1px solid #f8b4b4;
+}
+
+.canopy-badge.status-moderate {
+    background-color: #e8f5e9;
+    color: #28a745;
+    border: 1px solid #a5d6a7;
+}
+
+.canopy-badge.status-dense {
+    background-color: #c8e6c9;
+    color: #155724;
+    border: 1px solid #81c784;
+}
+
+/* =========================================
+   BUTTONS & PDF / EXCEL PANELS
+========================================= */
+.btn-analyze {
+    background-color: var(--primary-green);
+    color: #ffffff;
+    font-weight: 600;
+    border-radius: 8px;
+    border: none;
+    padding: 10px 20px;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-analyze:hover {
+    background-color: #1b5320;
+    color: #ffffff;
+    box-shadow: 0 4px 10px rgba(37, 110, 43, 0.3);
+}
+
+.btn-action-white {
+    background-color: #ffffff;
+    border: 1px solid #d0dcd1;
+    color: #333333;
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 8px 16px;
+    transition: all 0.2s;
+}
+
+.btn-action-white:hover {
+    background-color: #f4f9f4;
+    border-color: var(--border-green);
+}
+
+/* EXPORT PANELS (PDF & EXCEL) */
+.pdf-container, .excel-container {
+    border: 1px solid var(--border-green);
+    border-radius: 12px;
+    background-color: #ffffff;
+    height: 100%;
+}
+
+.pdf-title, .excel-title {
+    color: var(--dark-green);
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.pdf-inner-box, .excel-inner-box {
+    border: 1px dashed var(--border-green);
+    border-radius: 10px;
+    background-color: #fafdfa;
+    padding: 15px;
+}
+
+.pdf-dummy-icon {
+    width: 38px;
+    height: 44px;
+    background-color: #fde8e8;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--pdf-red);
+}
+
+.excel-dummy-icon {
+    width: 38px;
+    height: 44px;
+    background-color: #e8f5e9;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--excel-green);
+}
+
+.pdf-subtext, .excel-subtext {
+    font-size: 0.8rem;
+    color: var(--gray-text);
+}
+
+.btn-download-pdf {
+    background-color: #fdf2f2;
+    color: var(--pdf-red);
+    border: 1px solid #f8b4b4;
+    font-weight: 600;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    padding: 6px 14px;
+    transition: all 0.2s ease;
+}
+
+.btn-download-pdf:not(.disabled):hover {
+    background-color: var(--pdf-red);
+    color: #ffffff;
+}
+
+.btn-download-excel {
+    background-color: #e8f5e9;
+    color: var(--excel-green);
+    border: 1px solid #a5d6a7;
+    font-weight: 600;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    padding: 6px 14px;
+    transition: all 0.2s ease;
+}
+
+.btn-download-excel:not(.disabled):hover {
+    background-color: var(--excel-green);
+    color: #ffffff;
+}
+
+/* =========================================
+   HISTORY TABLE (BẢNG LỊCH SỬ PHÂN TÍCH)
+========================================= */
+.history-card {
+    border: 1px solid var(--border-green);
+    border-radius: 14px;
+    background-color: #ffffff;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+}
+
+.table-responsive-custom {
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.history-table {
+    width: 100%;
+    margin-bottom: 0;
+    font-size: 0.88rem;
+}
+
+.history-table thead th {
+    background-color: var(--dark-green);
+    color: #ffffff;
+    font-weight: 600;
+    text-align: center;
+    padding: 10px;
+    sticky: top;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.history-table tbody td {
+    vertical-align: middle;
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid #eef4ef;
+    color: #444444;
+}
+
+.history-table tbody tr:hover {
+    background-color: #f4fbf5;
+}
+
+/* =========================================
+   TOAST & ALERTS (THÔNG BÁO TỰ ĐỘNG)
+========================================= */
+.toast-container-custom {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    z-index: 1080;
+}
+
+.custom-toast {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 12px 18px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-left: 4px solid var(--primary-green);
+    min-width: 280px;
+    animation: slideInRight 0.3s ease forwards;
+}
+
+.custom-toast.toast-error {
+    border-left-color: #dc3545;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* =========================================
+   CUSTOM SCROLLBAR & FOOTER
+========================================= */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #a2d3a5;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-green);
+}
+
+.app-footer {
+    text-align: center;
+    padding: 15px 0 5px 0;
+    font-size: 0.82rem;
+    color: var(--gray-text);
+}
+
+/* =========================================
+   RESPONSIVE (MÀN HÌNH NHỎ & MOBILE)
+========================================= */
+@media (max-width: 992px) {
+    .dashboard-card {
+        padding: 18px 20px;
+        margin: 10px;
+    }
+
+    .main-title {
+        font-size: 1.6rem;
+    }
+
+    .sub-title {
+        font-size: 0.95rem;
+    }
+
+    .dashboard-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+
+    .inner-placeholder-box {
+        height: 240px !important;
+        min-height: 240px !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .main-title {
+        font-size: 1.35rem;
+    }
+
+    .logo-img {
+        height: 65px;
+    }
+
+    .inner-placeholder-box {
+        height: 200px !important;
+        min-height: 200px !important;
+    }
+
+    .btn-analyze {
+        width: 100%;
+        justify-content: center;
+    }
+}

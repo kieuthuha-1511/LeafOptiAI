@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeafOptiAI</title>
+    
+    <!-- Google Fonts & Frameworks -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    
+    <!-- Viewer.js (Phóng to, thu nhỏ ảnh) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.11.3/viewer.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.11.3/viewer.min.js"></script>
+
+    <!-- jsPDF (Xuất file PDF) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Nền thiên nhiên -->
+    <div class="app-background"></div>
+
+    <!-- Card Dashboard chính -->
+    <div class="container-fluid py-4 px-3 px-md-5">
+        <div class="dashboard-card shadow-lg">
+            
+            <!-- HEADER LOGO & TIÊU ĐỀ -->
+            <header class="dashboard-header d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
+                <div class="logo-box mb-2 mb-md-0">
+                    <img src="{{ url_for('static', filename='images/logo_left.png') }}" alt="HPU2 Logo" class="logo-img">
+                </div>
+                <div class="header-center-text text-center px-2">
+                    <h1 class="main-title fw-bold mb-1" style="color: #FF7043; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);">AI Thermal Tomato Analyzer</h1>
+                    <h2 class="sub-title fst-italic fw-medium mb-1">Deep Learning-Based Thermal Image Analysis for Tomato Canopy</h2>
+                    <p class="author-title fw-medium mb-0">LeafOptiAI Research Team &ndash; Hanoi Pedagogical University 2</p>
+                </div>
+                <div class="logo-box mt-2 mt-md-0">
+                    <img src="{{ url_for('static', filename='images/logo_right.png') }}" alt="LeafOptiAI Logo" class="logo-img">
+                </div>
+            </header>
+
+            <!-- UPLOAD ZONE -->
+            <section class="mb-4">
+                <div class="upload-zone d-flex flex-column align-items-center justify-content-center text-center p-4" id="uploadZone">
+                    <input type="file" id="fileInput" class="d-none" accept="image/*">
+                    <div class="upload-icon-wrapper mb-2">
+                        <i class="ri-cloud-line"></i>
+                        <i class="ri-arrow-up-line upload-arrow"></i>
+                    </div>
+                    <h5 class="upload-heading fw-bold mb-1">Upload Thermal Image</h5>
+                    <p class="upload-subtext text-muted mb-0">Drag and drop an image here or click to browse</p>
+                </div>
+            </section>
+
+            <!-- 3 KHUNG HIỂN THỊ ẢNH -->
+            <section class="mb-4">
+                <div class="row g-3">
+                    <!-- Original Image -->
+                    <div class="col-12 col-md-4">
+                        <div class="panel-card h-100">
+                            <div class="panel-header d-flex align-items-center justify-content-center">
+                                <i class="ri-image-line me-2"></i> Original Image
+                            </div>
+                            <div class="panel-body" id="origBox">
+                                <div class="inner-placeholder-box scan-container">
+                                    <img id="origImg" src="" alt="Original Image">
+                                    <div class="image-placeholder-container">
+                                        <img src="{{ url_for('static', filename='images/placeholder.png') }}" alt="Placeholder" class="placeholder-img">
+                                    </div>
+                                    
+                                    <!-- Lớp phủ và thanh quét AI -->
+                                    <div class="scan-overlay" id="scanOverlay">AI is analyzing canopy...</div>
+                                    <div class="scan-line" id="scanLine"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Segmentation Image -->
+                    <div class="col-12 col-md-4">
+                        <div class="panel-card h-100">
+                            <div class="panel-header d-flex align-items-center justify-content-center">
+                                <i class="ri-image-edit-line me-2"></i> Segmentation Image
+                            </div>
+                            <div class="panel-body" id="segBox">
+                                <div class="inner-placeholder-box">
+                                    <img id="segImg" src="" alt="Segmentation Image">
+                                    <div class="image-placeholder-container">
+                                        <img src="{{ url_for('static', filename='images/placeholder.png') }}" alt="Placeholder" class="placeholder-img">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Binary Mark -->
+                    <div class="col-12 col-md-4">
+                        <div class="panel-card h-100">
+                            <div class="panel-header d-flex align-items-center justify-content-center">
+                                <i class="ri-qr-scan-2-line me-2"></i> Binary Mark
+                            </div>
+                            <div class="panel-body" id="maskBox">
+                                <div class="inner-placeholder-box">
+                                    <img id="maskImg" src="" alt="Binary Mark">
+                                    <div class="image-placeholder-container">
+                                        <img src="{{ url_for('static', filename='images/placeholder.png') }}" alt="Placeholder" class="placeholder-img">
+                                    </div>
+                                </div>
+                                <!-- Chú thích vùng ảnh -->
+                                <div style="display: flex; justify-content: center; gap: 20px; margin-top: 15px; font-size: 14px; font-weight: 500; color: #555; font-family: 'Be Vietnam Pro', sans-serif;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span style="display: inline-block; width: 18px; height: 18px; background-color: black; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.2);"></span>
+                                        Vùng nền
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span style="display: inline-block; width: 18px; height: 18px; background-color: white; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);"></span>
+                                        Vùng lá
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RESULT ANALYZER -->
+            <section class="mb-4">
+                <div class="result-analyzer-box p-3 p-md-4">
+                    <div class="result-title d-flex align-items-center mb-3">
+                        <i class="ri-tray-upload-line me-2 title-icon"></i>
+                        <span class="fw-bold">Result Analyzer</span>
+                    </div>
+
+                    <div class="row g-3">
+                        <!-- Leaf Area -->
+                        <div class="col-12 col-sm-6 col-lg flex-grow-1">
+                            <div class="metric-card d-flex align-items-center p-3 h-100" style="background-color: #FFF5ED; border: 1px solid #FFE0B2; border-radius: 8px;">
+                                <div class="icon-circle me-3"><i class="ri-leaf-line"></i></div>
+                                <div>
+                                    <div class="metric-label">Leaf Area</div>
+                                    <div class="metric-value"><span id="valLeafArea">--</span> <small class="unit-text">pixels</small></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Coverage (%) -->
+                        <div class="col-12 col-sm-6 col-lg-3 flex-grow-1">
+                            <div class="metric-card p-3 h-100 d-flex flex-column justify-content-center" style="background-color: #FFF5ED; border: 1px solid #FFE0B2; border-radius: 8px;">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="icon-circle me-3"><i class="ri-pie-chart-line"></i></div>
+                                    <div>
+                                        <div class="metric-label">Coverage (%)</div>
+                                        <div class="metric-value"><span id="valCoverage">--</span> <small class="unit-text">%</small></div>
+                                    </div>
+                                </div>
+                                <div class="progress custom-progress-bar" style="background-color: #FFE0B2; height: 10px; border-radius: 10px;">
+                                    <div class="progress-bar" id="barCoverage" role="progressbar" style="width: 0%; background-color: #1b8026 !important; opacity: 1; border-radius: 10px;"></div>
+                                </div>
+                                <div class="d-flex justify-content-between ticks-text mt-1">
+                                    <span>0</span><span>25</span><span>50</span><span>75</span><span>100</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Detected Regions -->
+                        <div class="col-12 col-sm-6 col-lg flex-grow-1">
+                            <div class="metric-card d-flex align-items-center p-3 h-100" style="background-color: #FFF5ED; border: 1px solid #FFE0B2; border-radius: 8px;">
+                                <div class="icon-circle me-3"><i class="ri-focus-3-line"></i></div>
+                                <div>
+                                    <div class="metric-label">Detected Regions</div>
+                                    <div class="metric-value" id="valRegions">--</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mean Confidence -->
+                        <div class="col-12 col-sm-6 col-lg flex-grow-1">
+                            <div class="metric-card d-flex align-items-center p-3 h-100" style="background-color: #FFF5ED; border: 1px solid #FFE0B2; border-radius: 8px;">
+                                <div class="icon-circle me-3"><i class="ri-target-line"></i></div>
+                                <div>
+                                    <div class="metric-label">Mean Confidence</div>
+                                    <div class="metric-value"><span id="valConfidence">--</span> <small class="unit-text">%</small></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Inference Time -->
+                        <div class="col-12 col-sm-6 col-lg flex-grow-1">
+                            <div class="metric-card d-flex align-items-center p-3 h-100" style="background-color: #FFF5ED; border: 1px solid #FFE0B2; border-radius: 8px;">
+                                <div class="icon-circle me-3"><i class="ri-time-line"></i></div>
+                                <div>
+                                    <div class="metric-label">Inference Time</div>
+                                    <div class="metric-value"><span id="valTime">--</span> <small class="unit-text">ms</small></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- NÚT BẤM & KHUNG PDF -->
+            <section class="row align-items-center mb-4">
+                <!-- Cột chứa 4 nút bấm -->
+                <div class="col-lg-6 col-md-12 d-flex flex-wrap align-items-center gap-2 mb-3 mb-lg-0">
+                    <button class="btn btn-analyze px-4 py-2" id="btnAnalyze">
+                        <i class="ri-brain-line me-1"></i> Analyze
+                    </button>
+                    <button class="btn btn-action-white px-4 py-2" id="btnClear">
+                        <i class="ri-refresh-line me-1"></i> Clear
+                    </button>
+                    <!-- Đã thêm tooltip chú thích xuất Excel -->
+                    <button class="btn btn-action-white px-3 py-2" id="btnExportExcel" title="Xuất ra file định dạng Excel (có tất cả các lần phân tích trong lịch sử)">
+                        <i class="ri-file-excel-line me-1 text-success"></i> Export Excel
+                    </button>
+                    <button class="btn btn-action-white px-3 py-2" id="btnExportPDF">
+                        <i class="ri-file-pdf-line me-1 text-danger"></i> Export PDF
+                    </button>
+                </div>
+
+                <!-- Cột chứa thông báo Generated PDF Report -->
+                <div class="col-lg-6 col-md-12">
+                    <div class="pdf-container p-3 d-flex flex-column flex-sm-row align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-3 mb-2 mb-sm-0">
+                            <div class="pdf-dummy-icon" style="font-size: 2rem;">
+                                <i class="ri-file-pdf-fill"></i>
+                            </div>
+                            <div>
+                                <div class="pdf-title fw-bold">Generated PDF Report</div>
+                                <div class="pdf-subtext text-muted" style="font-size: 0.85rem;">
+                                    <p class="mb-0">PDF report will appear here after analysis.</p>
+                                    <p class="mb-0">Click the button below to download.</p>
+                                    <!-- Đã thêm chú thích giới hạn xuất PDF -->
+                                    <p class="text-danger" style="font-family: 'Roboto', sans-serif;">* Lưu ý: Chỉ xuất được PDF 1 lần phân tích gần nhất.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-download-pdf d-flex align-items-center text-nowrap disabled ms-sm-2" id="btnDownloadPDF">
+                            <i class="ri-download-2-line me-1"></i> Download PDF
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- LỊCH SỬ PHÂN TÍCH (DẠNG MŨI TÊN THU GỌN MỞ RỘNG) -->
+            <section class="mt-4">
+                <div id="historyContainer" class="history-card p-3 bg-white border rounded-3 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <!-- Thêm thuộc tính data-bs-toggle="collapse" để có thể đóng mở -->
+                        <div class="d-flex align-items-center gap-2" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#historyCollapse" aria-expanded="false" aria-controls="historyCollapse" onclick="document.getElementById('historyToggleIcon').classList.toggle('ri-arrow-up-s-line'); document.getElementById('historyToggleIcon').classList.toggle('ri-arrow-down-s-line');">
+                            <h6 class="m-0 fw-bold text-success d-flex align-items-center gap-2">
+                                <i class="ri-history-line fs-5"></i>
+                                <span style="font-family: 'Roboto', sans-serif;">Lịch sử phân tích (Analysis History)</span>
+                            </h6>
+                            <!-- Mũi tên xổ xuống -->
+                            <i class="ri-arrow-down-s-line fs-5 text-success" id="historyToggleIcon"></i>
+                        </div>
+                        <button id="btnClearHistory" class="btn btn-outline-danger btn-sm px-3">
+                            <i class="ri-delete-bin-line me-1"></i>Xóa lịch sử
+                        </button>
+                    </div>
+                    
+                    <!-- Khung chứa thanh cuộn (được bọc trong thẻ div collapse để thu gọn/mở rộng) -->
+                    <div class="collapse mt-3" id="historyCollapse">
+                        <div class="history-scroll-wrapper">
+                            <table class="table table-hover align-middle mb-0 text-center" style="font-size: 0.88rem;">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th style="width: 50px;">STT</th>
+                                        <th>Tên ảnh</th>
+                                        <th>Thời gian</th>
+                                        <th>Diện tích lá (px)</th>
+                                        <th>Tỷ lệ phủ (%)</th>
+                                        <th>Độ tin cậy (%)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyTableBody">
+                                    <tr>
+                                        <td colspan="6" class="text-muted py-3">Chưa có lịch sử phân tích nào</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        document.getElementById('btnDownloadPDF')?.addEventListener('click', function() {
+            this.classList.add('clicked');
+        });
+    </script>
+
+    <!-- Div ẩn làm Tooltip -->
+    <div id="pixelTooltip" style="position: absolute; display: none; background: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px; pointer-events: none; z-index: 1000;"></div>
+
+    <script>
+    window.addEventListener('load', function() {
+        const img = document.getElementById('maskImg'); 
+        const tooltip = document.getElementById('pixelTooltip');
+        
+        if(img) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            img.addEventListener('mousemove', function(e) {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0, img.width, img.height);
+                
+                const rect = img.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const pixel = ctx.getImageData(x, y, 1, 1).data;
+                const r = pixel[0], g = pixel[1], b = pixel[2];
+                const brightness = (r + g + b) / 3;
+                
+                tooltip.style.display = 'block';
+                tooltip.style.left = (e.pageX + 15) + 'px';
+                tooltip.style.top = (e.pageY + 15) + 'px';
+                
+                if (brightness > 128) {
+                    tooltip.innerHTML = "🌱 Leaf (Vùng lá)";
+                    tooltip.style.backgroundColor = "rgba(76, 175, 80, 0.9)";
+                } else {
+                    tooltip.innerHTML = "⬛ Background (Vùng nền)";
+                    tooltip.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
+                }
+            });
+
+            img.addEventListener('mouseleave', function() {
+                tooltip.style.display = 'none';
+            });
+        }
+    });
+    </script>
+
+    <!-- Footer -->
+    <footer style="text-align: center; margin-top: 50px; padding: 25px 15px; border-top: 2px dashed #E0E0E0; background-color: #FAFAFA; border-radius: 0 0 15px 15px;">
+        <p style="margin: 0; color: #424242; font-size: 15px;">
+            <strong>© 2026 LeafOptiAI Research Team</strong> | AI for Smart Agriculture
+        </p>
+        <p style="margin: 5px 0 0 0; color: #9E9E9E; font-size: 13px;">
+            Version 1.0.0
+        </p>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</body>
+</html>
