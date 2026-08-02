@@ -71,7 +71,6 @@ class Config:
     PDF_FOLDER = os.path.join(BASE_DIR, 'pdf')
     EXCEL_FOLDER = os.path.join(BASE_DIR, 'exports')
     
-    # Đã sửa thành 'models' thay vì 'model' để khớp với cây thư mục thực tế
     MODEL_PATH = os.path.join(BASE_DIR, 'models', 'best.pt')
     
     MAX_CONTENT_LENGTH = 32 * 1024 * 1024
@@ -149,7 +148,7 @@ analyzer = ThermalImageAnalyzer(Config.MODEL_PATH)
 
 
 # ===============================================================================
-# REPORTLAB PDF GENERATOR (CHUẨN 100% GIAO DIỆN MẪU ẢNH 1)
+# REPORTLAB PDF GENERATOR
 # ===============================================================================
 class NumberedCanvas(canvas.Canvas):
     def __init__(self, *args, **kwargs):
@@ -401,7 +400,7 @@ def create_excel_report(output_path: str, history_items: List[Dict[str, Any]]) -
 
 
 # ===============================================================================
-# HÀM ĐỊNH VỊ ẢNH THÔNG MINH - TÌM TẤT CẢ THƯ MỤC CON
+# HÀM ĐỊNH VỊ ẢNH THÔNG MINH
 # ===============================================================================
 def locate_image_file(raw_input: Any, folder_keywords: List[str], file_keywords: List[str]) -> str:
     if raw_input:
@@ -622,7 +621,7 @@ def download_excel(filename):
 
 
 if __name__ == '__main__':
-    logger.info("Khởi chạy Server Flask trên http://127.0.0.1:5000")
-    # Sử dụng biến PORT của Render để tránh lỗi bind
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    port = int(os.environ.get('PORT', 10000))
+    logger.info(f"Khởi chạy Server Flask trên port {port}")
+    # ĐÃ TẮT DEBUG=FALSE ĐỂ TIẾT KIỆM 50% RAM
+    app.run(host='0.0.0.0', port=port, debug=False)
