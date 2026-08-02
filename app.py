@@ -34,7 +34,7 @@ import numpy as np
 # -----------------------------------------------------------------------------
 try:
     # Nhập class ThermalImageAnalyzer từ file predict.py cùng thư mục
-    from predict import ThermalImageAnalyzer
+    from models.predict import ThermalImageAnalyzer
 except ImportError as e:
     print(f"Lỗi: Không tìm thấy file predict.py hoặc class ThermalImageAnalyzer: {e}")
     sys.exit(1)
