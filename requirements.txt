@@ -18,9 +18,9 @@ reportlab==4.1.0
 # ==========================================
 # HỌC SÂU & AI (DEEP LEARNING / YOLO)
 # ==========================================
-torch==2.5.1
-torchvision==0.20.1
-ultralytics==8.1.24
+torch
+torchvision
+ultralytics
 
 # ==========================================
 # MÔI TRƯỜNG CHẠY THẬT (PRODUCTION SERVER - TÙY CHỌN)
