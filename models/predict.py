@@ -15,6 +15,9 @@ import torch
 import logging
 import time
 from ultralytics import YOLO
+# --- THÊM DÒNG NÀY ĐỂ BỎ QUA LỖI TORCH SERIALIZATION ---
+from ultralytics.nn.tasks import SegmentationModel
+import torch.nn.modules.container
 
 # --- THÊM DÒNG NÀY ĐỂ BỎ QUA LỖI TORCH SERIALIZATION ---
 from ultralytics.nn.tasks import SegmentationModel
