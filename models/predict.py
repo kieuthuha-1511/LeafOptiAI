@@ -5,6 +5,7 @@ AI THERMAL TOMATO ANALYZER - DEEP LEARNING PREDICTION MODULE
 Mô tả: 
 Chạy suy luận (Inference) bằng mô hình YOLO Segmentation. 
 Tạo ảnh overlay, mask nhị phân và trích xuất tham số nông nghiệp.
+(Đã lược bỏ OpenCV vẽ thủ công, tối ưu bằng core của Ultralytics & Numpy)
 ===============================================================================
 """
 
@@ -20,44 +21,25 @@ logger = logging.getLogger('ThermalAnalyzer.Predict')
 
 class ThermalImageAnalyzer:
     def __init__(self, model_path: str):
-        """
-        Khởi tạo và load mô hình YOLO vào RAM.
-        Giúp tối ưu hóa thời gian xử lý API, không phải load lại model mỗi khi upload ảnh.
-        """
         self.model_path = model_path
         logger.info(f"Đang tải mô hình học sâu từ: {model_path} ...")
-        
-        # Khởi tạo mô hình YOLO Segmentation
         self.model = YOLO(model_path)
-        
-        # Kiểm tra thiết bị phần cứng (GPU/CPU)
         device = 'CUDA' if torch.cuda.is_available() else 'CPU'
-        logger.info(f"Đã tải thành công mô hình. Đang chạy trên thiết bị: {device}")
+        logger.info(f"Đã tải thành công. Đang chạy trên thiết bị: {device}")
 
     def process(self, image_path: str):
-        """
-        Đọc ảnh nhiệt, chạy qua mô hình YOLO-Seg và trả về:
-        - Ảnh BGR đã vẽ Overlay (Segmentation)
-        - Ảnh Grayscale (Binary Mask)
-        - Bộ chỉ số đo đạc (Metrics Dictionary)
-        """
         start_time = time.time()
+        CONF_THRESHOLD = 0.6
         
-        # ==========================================
-        # 1. CẤU HÌNH THAM SỐ
-        # ==========================================
-        CONF_THRESHOLD = 0.6        # Ngưỡng tin cậy (Confidence score) >= 60%
-        
-        # 2. ĐỌC ẢNH ĐẦU VÀO
+        # 1. Đọc ảnh
         orig_img = cv2.imread(image_path)
         if orig_img is None:
-            raise ValueError(f"Không thể đọc file ảnh tại đường dẫn: {image_path}")
-        
+            raise ValueError(f"Không thể đọc file ảnh: {image_path}")
+            
         h, w = orig_img.shape[:2]
         total_pixels = h * w
         
-        # 3. GỌI MÔ HÌNH VÀ DỰ ĐOÁN (INFERENCE)
-        # Tắt tính năng vẽ ảnh mặc định của Ultralytics để ta tự vẽ custom UI
+        # 2. Chạy model YOLO
         results = self.model.predict(
             source=orig_img,
             conf=CONF_THRESHOLD,
@@ -65,68 +47,47 @@ class ThermalImageAnalyzer:
             save=False,
             verbose=False
         )
+        result = results[0]
         
-        result = results[0] # Lấy kết quả của bức ảnh đầu tiên
-        
-        # 4. TẠO CÁC BIẾN KẾT QUẢ KHỞI TẠO TRỐNG
+        # Biến mặc định
         binary_mask = np.zeros((h, w), dtype=np.uint8)
         seg_img = orig_img.copy()
-        
         detected_regions = 0
         mean_conf = 0.0
+        mask_pixels = 0
         
-        # 5. XỬ LÝ KẾT QUẢ PHÂN ĐOẠN (MASK & BOUNDING BOX)
-        if result.masks is not None and result.boxes is not None:
+        # 3. Xử lý kết quả (KHÔNG DÙNG OpenCV truyền thống)
+        if result.masks is not None and len(result.masks.data) > 0:
             detected_regions = len(result.boxes)
+            mean_conf = float(result.boxes.conf.mean().cpu().numpy())
             
-            # Tính toán độ tin cậy trung bình (Thang đo 0.0 -> 1.0)
-            confs = result.boxes.conf.cpu().numpy()
-            if len(confs) > 0:
-                mean_conf = float(np.mean(confs))
+            # --- TẠO ẢNH OVERLAY BẰNG ENGINE CỦA YOLO ---
+            # Dùng luôn tính năng plot() của YOLO, tự động bo viền, làm mờ, dán nhãn cực đẹp
+            seg_img = result.plot(labels=False, boxes=False, conf=False)
             
-            # YOLO trả về tọa độ các đường viền đa giác (Polygons) của tán lá
-            for xy in result.masks.xy:
-                # Chuyển đổi tọa độ sang int32 theo chuẩn của OpenCV
-                pts = np.array(xy, dtype=np.int32)
+            # --- TẠO BINARY MASK BẰNG TENSOR/NUMPY (Nhanh hơn cv2.fillPoly) ---
+            # Lấy tensor mask từ YOLO, gộp tất cả các vùng lá lại thành 1 mask duy nhất
+            mask_tensor = torch.any(result.masks.data, dim=0).byte().cpu().numpy()
+            
+            # Đảm bảo kích thước mask khớp với kích thước ảnh gốc
+            if mask_tensor.shape != (h, w):
+                binary_mask = cv2.resize(mask_tensor, (w, h), interpolation=cv2.INTER_NEAREST)
+            else:
+                binary_mask = mask_tensor
                 
-                # Tô màu trắng (255) cho vùng bên trong đa giác trên Binary Mask
-                cv2.fillPoly(binary_mask, [pts], 255)
-                
-            # ==============================================
-            # 6. VẼ HIỆU ỨNG OVERLAY DẠ QUANG CHO ẢNH KẾT QUẢ
-            # ==============================================
-            contours, _ = cv2.findContours(binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            
-            overlay = orig_img.copy()
-            # Tô màu xanh lá vào vùng tán cây trên ảnh overlay
-            cv2.drawContours(overlay, contours, -1, (36, 179, 0), -1)
-            
-            # Hòa trộn màu (Alpha Blending) tạo độ trong suốt 40% cho vùng phủ
-            cv2.addWeighted(overlay, 0.4, seg_img, 0.6, 0, seg_img)
-            
-            # Vẽ nét đứt/liền bo viền sắc nét màu xanh lá mạ
-            cv2.drawContours(seg_img, contours, -1, (0, 255, 64), 2)
+            binary_mask = binary_mask * 255 # Đổi [0,1] thành [0, 255] cho ảnh xám
+            mask_pixels = int(np.count_nonzero(binary_mask))
 
-        # ==============================================
-        # 7. TÍNH TOÁN CÁC CHỈ SỐ NÔNG NGHIỆP TỪ BINARY MASK
-        # ==============================================
-        mask_pixels = int(np.count_nonzero(binary_mask))
-        
-        # Tỷ lệ che phủ = (Diện tích lá / Tổng diện tích khung hình) * 100
-        coverage = round((mask_pixels / total_pixels) * 100, 2)
-        
-        # TÍNH DIỆN TÍCH LÁ THEO ĐƠN VỊ PIXEL (Số đếm thô)
-        leaf_area = mask_pixels 
-        
+        # 4. Tính toán Metrics
+        coverage = round((mask_pixels / total_pixels) * 100, 2) if total_pixels > 0 else 0
         inference_time = round((time.time() - start_time) * 1000, 2)
         
         metrics = {
-            "leaf_area": leaf_area, 
+            "leaf_area": mask_pixels,
             "coverage": coverage,
             "detected_regions": detected_regions,
             "confidence": round(mean_conf, 3),
             "inference_time": inference_time
         }
         
-        # 8. TRẢ VỀ THEO ĐÚNG TIÊU CHUẨN CỦA APP.PY
         return seg_img, binary_mask, metrics
