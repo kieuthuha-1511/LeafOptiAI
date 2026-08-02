@@ -20,6 +20,7 @@ from ultralytics import YOLO
 from ultralytics.nn.tasks import SegmentationModel
 torch.serialization.add_safe_globals([SegmentationModel])
 # -----------------------------------------------------
+
 # Cấu hình logging
 logger = logging.getLogger('ThermalAnalyzer.Predict')
 
