@@ -79,7 +79,7 @@ class Config:
     EXCEL_FOLDER = os.path.join(BASE_DIR, 'exports')
     
     # ĐƯỜNG DẪN TỚI FILE TRỌNG SỐ AI (best.pt)
-    MODEL_PATH = os.path.join(BASE_DIR, 'model', 'best.pt')
+    MODEL_PATH = os.path.join(BASE_DIR, 'models', 'best.pt')
     
     MAX_CONTENT_LENGTH = 32 * 1024 * 1024
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'tif', 'tiff', 'bmp'}
