@@ -16,6 +16,10 @@ import logging
 import time
 from ultralytics import YOLO
 
+# --- THÊM DÒNG NÀY ĐỂ BỎ QUA LỖI TORCH SERIALIZATION ---
+from ultralytics.nn.tasks import SegmentationModel
+torch.serialization.add_safe_globals([SegmentationModel])
+# -----------------------------------------------------
 # Cấu hình logging
 logger = logging.getLogger('ThermalAnalyzer.Predict')
 
