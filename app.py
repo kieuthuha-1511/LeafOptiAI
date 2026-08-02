@@ -18,12 +18,17 @@ from typing import Tuple, Dict, Any, List
 from urllib.parse import urlparse, unquote
 import gc
 import torch
+import ultralytics
 
 # ==========================================
 # CẤU HÌNH TỐI ƯU RAM CHO RENDER FREE (DƯỚI 512MB)
 # ==========================================
 torch.set_grad_enabled(False)  # Tắt tính năng tính đạo hàm -> Tiết kiệm 40% RAM
 torch.set_num_threads(1)       # Ép PyTorch chạy 1 luồng -> Chống vọt RAM
+# THÊM CỤM NÀY ĐỂ FIX LỖI 502 (PYTORCH 2.6)
+# ==========================================
+torch.serialization.add_safe_globals([ultralytics.nn.tasks.SegmentationModel])
+
 from flask import (
     Flask,
     render_template,
