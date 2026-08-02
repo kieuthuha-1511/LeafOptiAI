@@ -3,7 +3,7 @@
 AI THERMAL TOMATO ANALYZER - WEB BACKEND SERVER
 ===============================================================================
 Đơn vị phát triển : LeafOptiAI Research Team
-Trường            : Hanoi Pedagogical University 2 (HPU2)
+Trường             : Hanoi Pedagogical University 2 (HPU2)
 ===============================================================================
 """
 
@@ -25,20 +25,8 @@ from flask import (
     send_from_directory,
     url_for
 )
-
 import cv2
 import numpy as np
-
-# -----------------------------------------------------------------------------
-# LIÊN KẾT TRỰC TIẾP TỚI MÔ HÌNH AI (predict.py)
-# -----------------------------------------------------------------------------
-try:
-    # Nhập class ThermalImageAnalyzer từ file predict.py trong thư mục models
-    from models.predict import ThermalImageAnalyzer
-except ImportError as e:
-    print(f"Lỗi: Không tìm thấy file models/predict.py hoặc class ThermalImageAnalyzer: {e}")
-    sys.exit(1)
-
 
 try:
     import openpyxl
@@ -63,6 +51,11 @@ from reportlab.platypus import (
 )
 from reportlab.pdfgen import canvas
 
+# ===============================================================================
+# IMPORT TRỰC TIẾP MODULE AI TỪ THƯ MỤC MODELS
+# ===============================================================================
+from models.predict import ThermalImageAnalyzer
+
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'leafoptiai-hpu2-thermal-secret-key-2026')
@@ -78,7 +71,7 @@ class Config:
     PDF_FOLDER = os.path.join(BASE_DIR, 'pdf')
     EXCEL_FOLDER = os.path.join(BASE_DIR, 'exports')
     
-    # ĐƯỜNG DẪN TỚI FILE TRỌNG SỐ AI (best.pt)
+    # Đã sửa thành 'models' thay vì 'model' để khớp với cây thư mục thực tế
     MODEL_PATH = os.path.join(BASE_DIR, 'models', 'best.pt')
     
     MAX_CONTENT_LENGTH = 32 * 1024 * 1024
@@ -150,10 +143,9 @@ def start_background_cleanup():
 
 start_background_cleanup()
 
-# -----------------------------------------------------------------------------
-# KHỞI TẠO BỘ PHÂN TÍCH AI (TẢI MODEL BEST.PT LÊN RAM)
-# -----------------------------------------------------------------------------
-analyzer = ThermalImageAnalyzer(model_path=Config.MODEL_PATH)
+
+# Khởi tạo duy nhất 1 lần Model AI khi chạy Server
+analyzer = ThermalImageAnalyzer(Config.MODEL_PATH)
 
 
 # ===============================================================================
@@ -477,20 +469,18 @@ def analyze():
         seg_path = os.path.join(app.config['SEGMENTATION_FOLDER'], seg_name)
         mask_path = os.path.join(app.config['BINARY_FOLDER'], mask_name)
         
-        # 1. Lưu ảnh gốc
+        # Lưu file vào thư mục con chuẩn
         file.save(orig_path)
         
-        # 2. Xử lý ảnh trực tiếp thông qua mô hình AI thật từ predict.py
+        # Gọi trực tiếp qua Model YOLO
         seg_bgr, binary_mask, metrics = analyzer.process(orig_path)
         
-        # 3. Lưu ảnh đầu ra
+        # Đánh giá Canopy Status từ AI Metrics
+        metrics['canopy_status'] = evaluate_canopy_status(metrics.get('coverage', 0.0))
+        
         cv2.imwrite(seg_path, seg_bgr)
         cv2.imwrite(mask_path, binary_mask)
         
-        # Đảm bảo gán lại canopy status nếu AI của bạn quên làm ở predict.py
-        if 'canopy_status' not in metrics:
-             metrics['canopy_status'] = evaluate_canopy_status(metrics.get('coverage', 0.0))
-
         return jsonify({
             'success': True,
             'images': {
@@ -626,4 +616,6 @@ def download_excel(filename):
 
 if __name__ == '__main__':
     logger.info("Khởi chạy Server Flask trên http://127.0.0.1:5000")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # Sử dụng biến PORT của Render để tránh lỗi bind
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
