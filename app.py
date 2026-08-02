@@ -3,7 +3,7 @@
 AI THERMAL TOMATO ANALYZER - WEB BACKEND SERVER
 ===============================================================================
 Đơn vị phát triển : LeafOptiAI Research Team
-Trường             : Hanoi Pedagogical University 2 (HPU2)
+Trường            : Hanoi Pedagogical University 2 (HPU2)
 ===============================================================================
 """
 
@@ -33,10 +33,10 @@ import numpy as np
 # LIÊN KẾT TRỰC TIẾP TỚI MÔ HÌNH AI (predict.py)
 # -----------------------------------------------------------------------------
 try:
-    # Nhập class ThermalImageAnalyzer từ file predict.py cùng thư mục
+    # Nhập class ThermalImageAnalyzer từ file predict.py trong thư mục models
     from models.predict import ThermalImageAnalyzer
 except ImportError as e:
-    print(f"Lỗi: Không tìm thấy file predict.py hoặc class ThermalImageAnalyzer: {e}")
+    print(f"Lỗi: Không tìm thấy file models/predict.py hoặc class ThermalImageAnalyzer: {e}")
     sys.exit(1)
 
 
@@ -153,7 +153,6 @@ start_background_cleanup()
 # -----------------------------------------------------------------------------
 # KHỞI TẠO BỘ PHÂN TÍCH AI (TẢI MODEL BEST.PT LÊN RAM)
 # -----------------------------------------------------------------------------
-# Hàm này gọi trực tiếp class trong predict.py và truyền đường dẫn best.pt vào.
 analyzer = ThermalImageAnalyzer(model_path=Config.MODEL_PATH)
 
 
@@ -483,9 +482,6 @@ def analyze():
         
         # 2. Xử lý ảnh trực tiếp thông qua mô hình AI thật từ predict.py
         seg_bgr, binary_mask, metrics = analyzer.process(orig_path)
-        
-        # Nếu hàm của bạn trả về lỗi, hãy kiểm tra lại tên hàm trong file predict.py 
-        # (có thể là `.analyze_image(orig_path)` hoặc `.predict(orig_path)` thay vì `.process()`)
         
         # 3. Lưu ảnh đầu ra
         cv2.imwrite(seg_path, seg_bgr)
