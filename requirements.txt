@@ -11,18 +11,19 @@ numpy
 opencv-python-headless
 
 # ==========================================
-# TRÍCH XUẤT BÁO CÁO (PDF GENERATOR)
+# TRÍCH XUẤT BÁO CÁO (PDF & EXCEL GENERATOR)
 # ==========================================
 reportlab==4.1.0
+openpyxl
 
 # ==========================================
 # HỌC SÂU & AI (DEEP LEARNING / YOLO)
 # ==========================================
 torch
 torchvision
-ultralytics
+ultralytics==8.1.24
 
 # ==========================================
-# MÔI TRƯỜNG CHẠY THẬT (PRODUCTION SERVER - TÙY CHỌN)
+# MÔI TRƯỜNG CHẠY THẬT TRÊN RENDER (LINUX)
 # ==========================================
-waitress==3.0.0
+gunicorn
