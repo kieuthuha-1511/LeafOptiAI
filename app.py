@@ -472,8 +472,15 @@ def analyze():
         # Lưu file vào thư mục con chuẩn
         file.save(orig_path)
         
+        # Bắt đầu bấm giờ
+        start_time = time.time()
+
         # Gọi trực tiếp qua Model YOLO
         seg_bgr, binary_mask, metrics = analyzer.process(orig_path)
+        
+        # Kết thúc bấm giờ và tính ra mili-giây (ms)
+        end_time = time.time()
+        metrics['inference_time'] = round((end_time - start_time) * 1000, 2)
         
         # Đánh giá Canopy Status từ AI Metrics
         metrics['canopy_status'] = evaluate_canopy_status(metrics.get('coverage', 0.0))
