@@ -25,6 +25,15 @@ class ThermalImageAnalyzer:
         """
         logger.info(f"Đang tải mô hình học sâu từ: {model_path} ...")
         
+        # --- THÊM ĐOẠN CODE NÀY ĐỂ VƯỢ QUA LỖI BẢO MẬT PYTORCH ---
+        import ultralytics.nn.tasks
+        try:
+            torch.serialization.add_safe_globals([ultralytics.nn.tasks.SegmentationModel])
+            logger.info("Đã cấp quyền an toàn (safe_globals) cho model YOLO.")
+        except AttributeError:
+            pass # Bỏ qua nếu phiên bản PyTorch cũ không yêu cầu
+        # --------------------------------------------------------
+
         # Khởi tạo mô hình YOLO Segmentation
         self.model = YOLO(model_path)
         
