@@ -503,3 +503,47 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+// ==========================================
+// XỬ LÝ SỰ KIỆN CLICK VÀO ẢNH MẪU
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+    const sampleImages = document.querySelectorAll('.sample-img');
+
+    sampleImages.forEach(img => {
+        img.addEventListener('click', async function () {
+            const imageUrl = this.src;
+            const fileName = this.getAttribute('data-filename') || 'sample.jpg';
+
+            try {
+                // 1. Tải dữ liệu ảnh từ đường dẫn static
+                const response = await fetch(imageUrl);
+                const blob = await response.blob();
+
+                // 2. Chuyển đổi thành đối tượng File trong JS
+                const file = new File([blob], fileName, { type: blob.type || 'image/jpeg' });
+
+                // 3. Gán file vào thẻ <input type="file"> nếu có
+                const fileInput = document.getElementById('image-input'); // Thay ID bằng ID thực tế của thẻ input file của bạn
+                if (fileInput) {
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    fileInput.files = dataTransfer.files;
+                }
+
+                // 4. Gọi hàm hiển thị Xem trước (Preview) hoặc Phân tích sẵn có trong script.js của bạn
+                // Giả sử hàm nhận file của bạn tên là handleFileSelect hoặc uploadAndAnalyze:
+                if (typeof handleFileSelect === 'function') {
+                    handleFileSelect(file);
+                } else if (typeof processImage === 'function') {
+                    processImage(file);
+                } else {
+                    console.log('Đã chọn ảnh mẫu:', fileName);
+                    // Nếu bạn có hàm gửi Form tự động, gọi ở đây!
+                }
+
+            } catch (error) {
+                console.error('Lỗi khi tải ảnh mẫu:', error);
+            }
+        });
+    });
+});
