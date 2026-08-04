@@ -743,6 +743,7 @@ body {
 
 /* Nguồn ghi chú (Font 11px, màu xám) */
 .sample-source {
+  font-family: 'Roboto', sans-serif;
   font-size: 11px;
   color: #94a3b8;
   font-style: italic;
