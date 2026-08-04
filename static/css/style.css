@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;1,400&display=swap');
 /* =========================================
    BIẾN MÀU SẮC & CẤU HÌNH CƠ BẢN
 ========================================= */
@@ -664,72 +665,86 @@ body {
 /* Import Font Roboto từ Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap');
 
+/* Import Font Roboto từ Google Fonts (Nếu bạn chưa có) */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;1,400&display=swap');
+
 /* ========================================== */
-/* STYLES CHO KHỐI ẢNH MẪU (BẢN MỚI) */
+/* STYLES CHO KHỐI ẢNH MẪU (BẢN CẬP NHẬT) */
 /* ========================================== */
 
 /* Bao ngoài: Tạo khoảng cách 35px với phần kết quả bên dưới */
 .sample-accordion {
-    text-align: center;
-    margin-top: 15px;
-    margin-bottom: 35px; /* <--- Đây là khoảng cách đẩy phần 3 ảnh xuống dưới */
+  text-align: center;
+  margin-top: 15px;
+  margin-bottom: 35px; /* <--- Đây là khoảng cách đẩy phần 3 ảnh xuống dưới */
 }
 
 /* Dòng chữ có mũi tên (Màu cam đậm, Font Roboto) */
 .sample-title {
-    font-family: 'Roboto', sans-serif;
-    color: #d35400; /* Màu cam đậm */
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    user-select: none;
-    display: inline-block; /* Giúp căn giữa chuẩn hơn */
-    padding: 8px 12px;
-    border-radius: 6px;
-    transition: background 0.2s ease;
+  font-family: 'Roboto', sans-serif;
+  color: #d35400; /* Màu cam đậm */
+  font-size: 18px; /* <--- Tăng cỡ chữ lên từ 15px */
+  font-weight: 600; /* <--- Tăng trọng lượng font cho nổi bật hơn */
+  cursor: pointer;
+  user-select: none;
+  display: flex; /* <--- Đổi thành flex để dễ dàng căn chỉnh mũi tên */
+  align-items: center; /* <--- Căn giữa nội dung bên trong theo chiều dọc */
+  justify-content: center; /* <--- Căn giữa nội dung bên trong theo chiều ngang */
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+/* Thêm mũi tên bấm xuống pseudo-element (Giống reference image) */
+.sample-title::after {
+  content: '\2304'; /* <--- Mã unicode cho mũi tên chevron xuống (⌄) */
+  margin-left: 10px; /* <--- Khoảng cách giữa chữ và mũi tên */
+  font-size: 0.9em; /* <--- Cỡ mũi tên nhỏ hơn một chút cho tinh tế */
+  color: #d35400; /* <--- Màu mũi tên cùng màu với chữ */
+  transform: translateY(1px); /* <--- Tinh chỉnh vị trí mũi tên một chút */
 }
 
 .sample-title:hover {
-    background-color: #fff7ed; /* Nền cam nhạt khi di chuột */
+  background-color: #fff7ed; /* Nền cam nhạt khi di chuột */
 }
 
 /* Hộp chứa ảnh (Mặc định ẩn, bấm vào mới hiện nhờ thẻ details) */
 .sample-content {
-    margin-top: 12px;
-    padding: 15px;
-    background-color: #f8fafc;
-    border: 1px dashed #cbd5e1;
-    border-radius: 10px;
+  margin-top: 12px;
+  padding: 15px;
+  background-color: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
 }
 
 .sample-grid {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 8px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 8px;
 }
 
 .sample-img {
-    width: 70px;
-    height: 70px;
-    object-fit: cover;
-    border-radius: 8px;
-    border: 2px solid #e2e8f0;
-    cursor: pointer;
-    transition: all 0.25s ease;
+  width: 70px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.25s ease;
 }
 
 /* Đổi viền hover sang cam cho đồng bộ tone màu */
 .sample-img:hover {
-    transform: translateY(-4px) scale(1.05);
-    border-color: #d35400; 
-    box-shadow: 0 4px 12px rgba(211, 84, 0, 0.25);
+  transform: translateY(-4px) scale(1.05);
+  border-color: #d35400;
+  box-shadow: 0 4px 12px rgba(211, 84, 0, 0.25);
 }
 
 /* Nguồn ghi chú (Font 11px, màu xám) */
 .sample-source {
-    font-size: 11px;
-    color: #94a3b8;
-    font-style: italic;
-    margin-top: 8px;
+  font-size: 11px;
+  color: #94a3b8;
+  font-style: italic;
+  margin-top: 8px;
 }
