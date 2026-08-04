@@ -703,19 +703,26 @@ body {
   display: none;
 }
 
-/* Thêm mũi tên bấm xuống pseudo-element (Giống reference image) */
+/* ======================================================= */
+/* VẼ MŨI TÊN BẰNG CSS THUẦN (Sắc nét, không bị lỗi font) */
+/* ======================================================= */
 .sample-title::after {
-  content: '\2304';
+  content: ''; 
+  display: inline-block;
+  width: 9px;  
+  height: 9px; 
   margin-left: 10px;
-  font-size: 0.9em;
-  color: #d35400;
-  transform: translateY(1px);
-  transition: transform 0.3s ease; /* Bổ sung hiệu ứng xoay mượt mà */
+  
+  border-right: 2.5px solid #d35400; 
+  border-bottom: 2.5px solid #d35400; 
+  
+  transform: translateY(-3px) rotate(45deg); 
+  transition: transform 0.3s ease;
 }
 
-/* BỔ SUNG HIỆU ỨNG: Khi thẻ details mở ra, mũi tên tự xoay ngược lên */
+/* HIỆU ỨNG: Khi mở khối ảnh ra, mũi tên xoay ngược lên trên */
 details[open] .sample-title::after {
-  transform: translateY(1px) rotate(180deg);
+  transform: translateY(2px) rotate(225deg); 
 }
 
 .sample-title:hover {
@@ -759,7 +766,7 @@ details[open] .sample-title::after {
 .sample-source {
   font-family: 'Roboto', sans-serif;
   font-size: 11px;
-  color: #94a3b8;
+  color: #6b7280;
   font-style: italic;
   margin-top: 8px;
 }
