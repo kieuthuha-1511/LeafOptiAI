@@ -508,6 +508,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
     const sampleImages = document.querySelectorAll('.sample-img');
+    const fileInput = document.getElementById('image-input'); // Đảm bảo ID này đúng với thẻ input của bạn
 
     sampleImages.forEach(img => {
         img.addEventListener('click', async function () {
@@ -519,14 +520,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const blob = await response.blob();
                 const file = new File([blob], fileName, { type: blob.type || 'image/jpeg' });
 
-                const fileInput = document.getElementById('image-input'); // Tên ID thẻ input file của bạn
                 if (fileInput) {
                     const dataTransfer = new DataTransfer();
                     dataTransfer.items.add(file);
                     fileInput.files = dataTransfer.files;
                     
-                    // GỌI HÀM CỦA BẠN ĐỂ HIỂN THỊ ẢNH Ở ĐÂY
-                    // Ví dụ: fileInput.dispatchEvent(new Event('change'));
+                    // KÍCH HOẠT SỰ KIỆN CHANGE ĐỂ ẢNH TỰ HIỂN THỊ VÀO Ô ORIGIN
+                    fileInput.dispatchEvent(new Event('change', { bubbles: true }));
                 }
             } catch (error) {
                 console.error('Lỗi khi nạp ảnh mẫu:', error);
