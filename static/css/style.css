@@ -661,55 +661,75 @@ body {
         justify-content: center;
     }
 }
+/* Import Font Roboto từ Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap');
+
 /* ========================================== */
-/* STYLES CHO KHỐI ẢNH MẪU */
+/* STYLES CHO KHỐI ẢNH MẪU (BẢN MỚI) */
 /* ========================================== */
-.sample-container {
+
+/* Bao ngoài: Tạo khoảng cách 35px với phần kết quả bên dưới */
+.sample-accordion {
+    text-align: center;
     margin-top: 15px;
-    padding: 12px;
+    margin-bottom: 35px; /* <--- Đây là khoảng cách đẩy phần 3 ảnh xuống dưới */
+}
+
+/* Dòng chữ có mũi tên (Màu cam đậm, Font Roboto) */
+.sample-title {
+    font-family: 'Roboto', sans-serif;
+    color: #d35400; /* Màu cam đậm */
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+    display: inline-block; /* Giúp căn giữa chuẩn hơn */
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: background 0.2s ease;
+}
+
+.sample-title:hover {
+    background-color: #fff7ed; /* Nền cam nhạt khi di chuột */
+}
+
+/* Hộp chứa ảnh (Mặc định ẩn, bấm vào mới hiện nhờ thẻ details) */
+.sample-content {
+    margin-top: 12px;
+    padding: 15px;
     background-color: #f8fafc;
     border: 1px dashed #cbd5e1;
     border-radius: 10px;
-    text-align: center;
 }
 
-.sample-title {
-    font-size: 13px;
-    font-weight: 600;
-    color: #475569;
-    margin-bottom: 10px;
-}
-
-/* Thẻ chứa 4 ảnh nằm ngang */
 .sample-grid {
     display: flex;
     justify-content: center;
-    gap: 12px;
+    gap: 15px;
     margin-bottom: 8px;
 }
 
-/* Mỗi hình ảnh thumbnail */
 .sample-img {
-    width: 65px;
-    height: 65px;
+    width: 70px;
+    height: 70px;
     object-fit: cover;
     border-radius: 8px;
     border: 2px solid #e2e8f0;
     cursor: pointer;
-    transition: all 0.25s ease-in-out;
+    transition: all 0.25s ease;
 }
 
-/* Hiệu ứng khi phóng to/rê chuột vào ảnh */
+/* Đổi viền hover sang cam cho đồng bộ tone màu */
 .sample-img:hover {
-    transform: translateY(-3px) scale(1.05);
-    border-color: #10b981; /* Màu xanh lá mạ dợt */
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    transform: translateY(-4px) scale(1.05);
+    border-color: #d35400; 
+    box-shadow: 0 4px 12px rgba(211, 84, 0, 0.25);
 }
 
-/* Dòng ghi nguồn nhỏ màu xám nhạt đúng yêu cầu (11px) */
+/* Nguồn ghi chú (Font 11px, màu xám) */
 .sample-source {
     font-size: 11px;
     color: #94a3b8;
     font-style: italic;
-    margin-top: 6px;
+    margin-top: 8px;
 }
