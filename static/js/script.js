@@ -504,11 +504,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 // ==========================================
-// XỬ LÝ SỰ KIỆN CLICK VÀO ẢNH MẪU
+// XỬ LÝ CLICK ẢNH MẪU - HIỆN NGAY LÊN Ô ORIGINAL
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
     const sampleImages = document.querySelectorAll('.sample-img');
-    const fileInput = document.getElementById('image-input'); // Đảm bảo ID này đúng với thẻ input của bạn
+    const fileInput = document.getElementById('image-input'); // ID của thẻ <input type="file">
 
     sampleImages.forEach(img => {
         img.addEventListener('click', async function () {
@@ -516,6 +516,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const fileName = this.getAttribute('data-filename') || 'sample.jpg';
 
             try {
+                // 1. TẢI DỮ LIỆU VÀ NẠP VÀO INPUT FILE (Để sẵn sàng gửi tới Server/Analyze)
                 const response = await fetch(imageUrl);
                 const blob = await response.blob();
                 const file = new File([blob], fileName, { type: blob.type || 'image/jpeg' });
@@ -525,9 +526,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     dataTransfer.items.add(file);
                     fileInput.files = dataTransfer.files;
                     
-                    // KÍCH HOẠT SỰ KIỆN CHANGE ĐỂ ẢNH TỰ HIỂN THỊ VÀO Ô ORIGIN
+                    // Phát sự kiện change phòng trường hợp có hàm đọc file từ input
                     fileInput.dispatchEvent(new Event('change', { bubbles: true }));
                 }
+
+                // =========================================================
+                // 2. ĐIỂM MẤU CHỐT: HIỂN THỊ ẢNH NÀY LÊN KHUNG "ORIGINAL IMAGE"
+                // =========================================================
+                // Tìm thẻ <img> trong khung Original Image (bạn thay ID/Class cho đúng với code của bạn)
+                const originalImgDisplay = document.getElementById('original-preview') 
+                                        || document.querySelector('#original-image-container img')
+                                        || document.querySelector('.original-img');
+
+                if (originalImgDisplay) {
+                    originalImgDisplay.src = imageUrl; // Đổi đường dẫn ảnh sang ảnh mẫu vừa click
+                    originalImgDisplay.style.display = 'block'; // Hiện thẻ ảnh lên nếu đang bị ẩn
+                } else {
+                    console.warn('Chưa tìm thấy thẻ <img> của khung Original Image. Hãy kiểm tra lại ID/Class!');
+                }
+
             } catch (error) {
                 console.error('Lỗi khi nạp ảnh mẫu:', error);
             }
