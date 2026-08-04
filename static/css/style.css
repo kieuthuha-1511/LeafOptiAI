@@ -661,3 +661,55 @@ body {
         justify-content: center;
     }
 }
+/* ========================================== */
+/* STYLES CHO KHỐI ẢNH MẪU */
+/* ========================================== */
+.sample-container {
+    margin-top: 15px;
+    padding: 12px;
+    background-color: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.sample-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 10px;
+}
+
+/* Thẻ chứa 4 ảnh nằm ngang */
+.sample-grid {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+/* Mỗi hình ảnh thumbnail */
+.sample-img {
+    width: 65px;
+    height: 65px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid #e2e8f0;
+    cursor: pointer;
+    transition: all 0.25s ease-in-out;
+}
+
+/* Hiệu ứng khi phóng to/rê chuột vào ảnh */
+.sample-img:hover {
+    transform: translateY(-3px) scale(1.05);
+    border-color: #10b981; /* Màu xanh lá mạ dợt */
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
+/* Dòng ghi nguồn nhỏ màu xám nhạt đúng yêu cầu (11px) */
+.sample-source {
+    font-size: 11px;
+    color: #94a3b8;
+    font-style: italic;
+    margin-top: 6px;
+}
