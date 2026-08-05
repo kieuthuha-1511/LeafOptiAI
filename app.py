@@ -21,16 +21,17 @@ import torch
 import ultralytics
 
 # ==========================================
-# CẤU HÌNH TỐI ƯU RAM CHO RENDER FREE (DƯỚI 512MB)
+# CẤU HÌNH TỐI ƯU RAM & FIX LỖI PYTORCH 2.6+
 # ==========================================
 torch.set_grad_enabled(False)
 torch.set_num_threads(1)
 
-# Cấp quyền nạp mô hình Object Detection & Segmentation để tránh lỗi WeightsUnpickler
-torch.serialization.add_safe_globals([
-    ultralytics.nn.tasks.DetectionModel,
-    ultralytics.nn.tasks.SegmentationModel
-])
+# Patch torch.load để giải quyết triệt để lỗi WeightsUnpickler trên PyTorch 2.6+
+_original_torch_load = torch.load
+def _patched_torch_load(*args, **kwargs):
+    kwargs['weights_only'] = False
+    return _original_torch_load(*args, **kwargs)
+torch.load = _patched_torch_load
 
 from flask import (
     Flask,
