@@ -1,3 +1,68 @@
+# 4. TẠO CÁC BIẾN KẾT QUẢ KHỞI TẠO TRỐNG
+    binary_mask = np.zeros((h, w), dtype=np.uint8)
+    seg_img = orig_img.copy()
+    
+    detected_regions = 0
+    mean_conf = 0.0
+    bounding_boxes = [] # Khởi tạo danh sách chứa tọa độ bounding box
+    
+    # 5. XỬ LÝ KẾT QUẢ VÙNG PHÁT HIỆN (BOUNDING BOXES)
+    if result.boxes is not None and len(result.boxes) > 0:
+        detected_regions = len(result.boxes)
+        
+        # Tính toán độ tin cậy trung bình (Thang đo 0.0 -> 1.0)
+        confs = result.boxes.conf.cpu().numpy()
+        if len(confs) > 0:
+            mean_conf = float(np.mean(confs))
+        
+        overlay = orig_img.copy()
+        
+        # Duyệt qua các khung hình chữ nhật phát hiện được
+        for box in result.boxes:
+            # Lấy tọa độ [x1, y1, x2, y2]
+            x1, y1, x2, y2 = map(int, box.xyxy[0].cpu().numpy())
+            
+            # Lưu tọa độ Bounding Box
+            bounding_boxes.append({
+                "x": x1,
+                "y": y1,
+                "width": x2 - x1,
+                "height": y2 - y1
+            })
+            
+            # Tô màu trắng (255) cho vùng Bounding Box trên Binary Mask
+            cv2.rectangle(binary_mask, (x1, y1), (x2, y2), 255, -1)
+            
+            # Tô màu xanh lá vào vùng Bounding Box trên ảnh overlay
+            cv2.rectangle(overlay, (x1, y1), (x2, y2), (36, 179, 0), -1)
+        
+        # ==============================================
+        # 6. VẼ HIỆU ỨNG OVERLAY DẠ QUANG CHO ẢNH KẾT QUẢ
+        # ==============================================
+        # Hòa trộn màu (Alpha Blending) tạo độ trong suốt 40% cho vùng Bounding Box
+        cv2.addWeighted(overlay, 0.4, seg_img, 0.6, 0, seg_img)
+        
+        # Vẽ khung viền sắc nét màu xanh lá mạ
+        for box in result.boxes:
+            x1, y1, x2, y2 = map(int, box.xyxy[0].cpu().numpy())
+            cv2.rectangle(seg_img, (x1, y1), (x2, y2), (0, 255, 64), 2)
+
+    # 7. TÍNH TOÁN CÁC CHỈ SỐ NÔNG NGHIỆP
+    mask_pixels = int(np.count_nonzero(binary_mask))
+    coverage = round((mask_pixels / total_pixels) * 100, 2)
+    leaf_area = mask_pixels # Sử dụng trực tiếp pixels Bounding Box
+    
+    # Đóng gói dữ liệu (inference_time sẽ được app.py tự động đo và ghi đè thêm)
+    metrics = {
+        "leaf_area": leaf_area,
+        "coverage": coverage,
+        "detected_regions": detected_regions,
+        "confidence": round(mean_conf, 3),
+        "bounding_boxes": bounding_boxes # Trả về mảng bounding box
+    }
+    
+    # 8. TRẢ VỀ THEO ĐÚNG TIÊU CHUẨN CỦA APP.PY
+    return seg_img, binary_mask, metrics
 """
 ===============================================================================
 AI THERMAL TOMATO ANALYZER - DEEP LEARNING PREDICTION MODULE
@@ -77,59 +142,3 @@ def predict_thermal_image(image_path: str, model_path: str):
     )
     
     result = results[0] # Lấy kết quả của bức ảnh đầu tiên
-    
-    # 4. TẠO CÁC BIẾN KẾT QUẢ KHỞI TẠO TRỐNG
-    binary_mask = np.zeros((h, w), dtype=np.uint8)
-    seg_img = orig_img.copy()
-    
-    detected_regions = 0
-    mean_conf = 0.0
-    
-    # 5. XỬ LÝ KẾT QUẢ VÙNG PHÁT HIỆN (BOUNDING BOXES)
-    if result.boxes is not None and len(result.boxes) > 0:
-        detected_regions = len(result.boxes)
-        
-        # Tính toán độ tin cậy trung bình (Thang đo 0.0 -> 1.0)
-        confs = result.boxes.conf.cpu().numpy()
-        if len(confs) > 0:
-            mean_conf = float(np.mean(confs))
-        
-        overlay = orig_img.copy()
-        
-        # Duyệt qua các khung hình chữ nhật phát hiện được
-        for box in result.boxes:
-            # Lấy tọa độ [x1, y1, x2, y2]
-            x1, y1, x2, y2 = map(int, box.xyxy[0].cpu().numpy())
-            
-            # Tô màu trắng (255) cho vùng Bounding Box trên Binary Mask
-            cv2.rectangle(binary_mask, (x1, y1), (x2, y2), 255, -1)
-            
-            # Tô màu xanh lá vào vùng Bounding Box trên ảnh overlay
-            cv2.rectangle(overlay, (x1, y1), (x2, y2), (36, 179, 0), -1)
-        
-        # ==============================================
-        # 6. VẼ HIỆU ỨNG OVERLAY DẠ QUANG CHO ẢNH KẾT QUẢ
-        # ==============================================
-        # Hòa trộn màu (Alpha Blending) tạo độ trong suốt 40% cho vùng Bounding Box
-        cv2.addWeighted(overlay, 0.4, seg_img, 0.6, 0, seg_img)
-        
-        # Vẽ khung viền sắc nét màu xanh lá mạ
-        for box in result.boxes:
-            x1, y1, x2, y2 = map(int, box.xyxy[0].cpu().numpy())
-            cv2.rectangle(seg_img, (x1, y1), (x2, y2), (0, 255, 64), 2)
-
-    # 7. TÍNH TOÁN CÁC CHỈ SỐ NÔNG NGHIỆP
-    mask_pixels = int(np.count_nonzero(binary_mask))
-    coverage = round((mask_pixels / total_pixels) * 100, 2)
-    leaf_area = mask_pixels # Sử dụng trực tiếp pixels Bounding Box
-    
-    # Đóng gói dữ liệu (inference_time sẽ được app.py tự động đo và ghi đè thêm)
-    metrics = {
-        "leaf_area": leaf_area,
-        "coverage": coverage,
-        "detected_regions": detected_regions,
-        "confidence": round(mean_conf, 3)
-    }
-    
-    # 8. TRẢ VỀ THEO ĐÚNG TIÊU CHUẨN CỦA APP.PY
-    return seg_img, binary_mask, metrics
