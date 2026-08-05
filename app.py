@@ -36,8 +36,6 @@ from flask import (
     url_for
 )
 
-from models.predict import predict_thermal_image
-
 import cv2
 import numpy as np
 
@@ -105,7 +103,6 @@ ALL_PROJECT_FOLDERS = [
     Config.EXCEL_FOLDER
 ]
 
-# SỬA LỖI 1: Thêm thụt lề cho vòng lặp for
 for directory in ALL_PROJECT_FOLDERS:
     os.makedirs(directory, exist_ok=True)
 
@@ -182,7 +179,6 @@ class ThermalImageAnalyzer:
             kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
             binary_mask = cv2.morphologyEx(binary_mask, cv2.MORPH_CLOSE, kernel, iterations=2)
             
-            # SỬA LỖI 2: Căn lề lại biến contours
             contours, _ = cv2.findContours(binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             valid_contours = [cnt for cnt in contours if cv2.contourArea(cnt) >= Config.MIN_CONTOUR_AREA]
             
@@ -195,13 +191,10 @@ class ThermalImageAnalyzer:
             
             bounding_boxes = []
             for cnt in valid_contours:
-                # Tính toán và trích xuất Bounding Box
                 x, y, bw, bh = cv2.boundingRect(cnt)
                 bounding_boxes.append({"x": x, "y": y, "width": bw, "height": bh})
-                # Vẽ Bounding Box (Màu đỏ)
                 cv2.rectangle(seg_bgr, (x, y), (x + bw, y + bh), (0, 0, 255), 2)
             
-            # Vẽ đường viền Contour (Màu xanh sáng)
             cv2.drawContours(seg_bgr, valid_contours, -1, (0, 255, 64), 2)
             
             mask_leaf_pixels = int(np.count_nonzero(binary_mask))
@@ -226,7 +219,7 @@ analyzer = ThermalImageAnalyzer(Config.MODEL_PATH)
 
 
 # ===============================================================================
-# REPORTLAB PDF GENERATOR (CHUẨN 100% GIAO DIỆN MẪU ẢNH 1)
+# REPORTLAB PDF GENERATOR (CHUẨN GIAO DIỆN HPU2)
 # ===============================================================================
 class NumberedCanvas(canvas.Canvas):
     def __init__(self, *args, **kwargs):
@@ -252,7 +245,6 @@ class NumberedCanvas(canvas.Canvas):
         self.setStrokeColor(colors.HexColor("#1b5e20"))
         self.setLineWidth(1)
         self.line(40, 40, 555, 40)
-        # SỬA LỖI 3: Căn lề lại drawString
         self.drawString(40, 25, "AI Thermal Tomato Analyzer — LeafOptiAI Research Team (HPU2)")
         self.drawRightString(555, 25, f"Page {self._pageNumber} of {page_count}")
         self.restoreState()
@@ -289,4 +281,141 @@ def create_pdf_report(output_pdf_path: str, metrics: Dict[str, Any], orig_img_pa
             alignment=1, 
             spaceAfter=14
         )
-        # Mã còn lại có thể viết tiếp tại đây...
+        
+        elements = []
+        elements.append(Paragraph("AI THERMAL TOMATO ANALYZER REPORT", title_style))
+        elements.append(Paragraph("LeafOptiAI Research Team — Hanoi Pedagogical University 2 (HPU2)", sub_style))
+        elements.append(HRFlowable(width="100%", thickness=1.5, color=PRIMARY_COLOR, spaceAfter=15))
+        
+        # Bảng tổng hợp chỉ số
+        table_data = [
+            [Paragraph("<b>Metric Parameter</b>", styles['Normal']), Paragraph("<b>Value</b>", styles['Normal'])],
+            ["Detected Regions", str(metrics.get("detected_regions", 0))],
+            ["Canopy Coverage", f"{metrics.get('coverage', 0.0)}%"],
+            ["Leaf Area (Pixels)", f"{metrics.get('leaf_area', 0)} px"],
+            ["Confidence Score", f"{metrics.get('confidence', 0.0)}%"],
+            ["Inference Time", f"{metrics.get('inference_time', 0.0)} ms"],
+            ["Canopy Status", metrics.get("canopy_status", {}).get("status", "N/A")]
+        ]
+        
+        t = Table(table_data, colWidths=[240, 235])
+        t.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#e8f5e9")),
+            ('TEXTCOLOR', (0, 0), (-1, 0), PRIMARY_COLOR),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ('TOPPADDING', (0, 0), (-1, -1), 6),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor("#cccccc")),
+        ]))
+        elements.append(t)
+        elements.append(Spacer(1, 20))
+        
+        # Bảng so sánh 3 ảnh
+        img_w, img_h = 150, 115
+        img_row = []
+        for path in [orig_img_path, seg_img_path, mask_img_path]:
+            if os.path.exists(path):
+                img_row.append(RLImage(path, width=img_w, height=img_h))
+            else:
+                img_row.append(Paragraph("N/A", styles['Normal']))
+                
+        img_table_data = [
+            [Paragraph("<b>Original</b>", styles['Normal']), Paragraph("<b>Segmentation</b>", styles['Normal']), Paragraph("<b>Binary Mask</b>", styles['Normal'])],
+            img_row
+        ]
+        img_table = Table(img_table_data, colWidths=[155, 155, 155])
+        img_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor("#eeeeee")),
+        ]))
+        elements.append(KeepTogether([img_table]))
+        
+        doc.build(elements, canvasmaker=NumberedCanvas)
+        return True
+
+    except Exception as e:
+        logger.error(f"Lỗi khi tạo PDF: {e}")
+        return False
+
+
+# ===============================================================================
+# FLASK WEB ENDPOINTS
+# ===============================================================================
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+
+@app.route('/analyze', methods=['POST'])
+def analyze():
+    if 'file' not in request.files:
+        return jsonify({'error': 'Không tìm thấy file tải lên.'}), 400
+        
+    file = request.files['file']
+    if file.filename == '' or not is_allowed_file(file.filename):
+        return jsonify({'error': 'Định dạng file không được hỗ trợ.'}), 400
+
+    unique_id = str(uuid.uuid4())[:8]
+    ext = file.filename.rsplit('.', 1)[1].lower()
+    filename = f"{unique_id}.{ext}"
+    
+    orig_path = os.path.join(Config.ORIGINAL_FOLDER, filename)
+    file.save(orig_path)
+
+    try:
+        seg_bgr, binary_mask, metrics = analyzer.process(orig_path)
+        
+        seg_filename = f"seg_{unique_id}.png"
+        binary_filename = f"mask_{unique_id}.png"
+        
+        seg_path = os.path.join(Config.SEGMENTATION_FOLDER, seg_filename)
+        binary_path = os.path.join(Config.BINARY_FOLDER, binary_filename)
+        
+        cv2.imwrite(seg_path, seg_bgr)
+        cv2.imwrite(binary_path, binary_mask)
+
+        # Tạo PDF báo cáo
+        pdf_filename = f"report_{unique_id}.pdf"
+        pdf_path = os.path.join(Config.PDF_FOLDER, pdf_filename)
+        create_pdf_report(pdf_path, metrics, orig_path, seg_path, binary_path)
+
+        return jsonify({
+            'success': True,
+            'metrics': metrics,
+            'original_url': url_for('get_original', filename=filename),
+            'segmentation_url': url_for('get_segmentation', filename=seg_filename),
+            'binary_url': url_for('get_binary', filename=binary_filename),
+            'pdf_url': url_for('get_pdf', filename=pdf_filename)
+        })
+
+    except Exception as e:
+        logger.error(f"Lỗi khi xử lý ảnh: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/uploads/original/<filename>')
+def get_original(filename):
+    return send_from_directory(Config.ORIGINAL_FOLDER, filename)
+
+
+@app.route('/results/segmentation/<filename>')
+def get_segmentation(filename):
+    return send_from_directory(Config.SEGMENTATION_FOLDER, filename)
+
+
+@app.route('/results/binary/<filename>')
+def get_binary(filename):
+    return send_from_directory(Config.BINARY_FOLDER, filename)
+
+
+@app.route('/pdf/<filename>')
+def get_pdf(filename):
+    return send_from_directory(Config.PDF_FOLDER, filename)
+
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 10000))
+    app.run(host='0.0.0.0', port=port, debug=False)
