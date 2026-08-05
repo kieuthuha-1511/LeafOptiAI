@@ -3,7 +3,7 @@
 AI THERMAL TOMATO ANALYZER - WEB BACKEND SERVER
 ===============================================================================
 Đơn vị phát triển : LeafOptiAI Research Team
-Trường             : Hanoi Pedagogical University 2 (HPU2)
+Trường            : Hanoi Pedagogical University 2 (HPU2)
 ===============================================================================
 """
 
@@ -105,8 +105,9 @@ ALL_PROJECT_FOLDERS = [
     Config.EXCEL_FOLDER
 ]
 
+# SỬA LỖI 1: Thêm thụt lề cho vòng lặp for
 for directory in ALL_PROJECT_FOLDERS:
-os.makedirs(directory, exist_ok=True)
+    os.makedirs(directory, exist_ok=True)
 
 
 def is_allowed_file(filename: str) -> bool:
@@ -180,7 +181,9 @@ class ThermalImageAnalyzer:
             
             kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
             binary_mask = cv2.morphologyEx(binary_mask, cv2.MORPH_CLOSE, kernel, iterations=2)
-contours, _ = cv2.findContours(binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            
+            # SỬA LỖI 2: Căn lề lại biến contours
+            contours, _ = cv2.findContours(binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             valid_contours = [cnt for cnt in contours if cv2.contourArea(cnt) >= Config.MIN_CONTOUR_AREA]
             
             seg_bgr = original_bgr.copy()
@@ -249,7 +252,8 @@ class NumberedCanvas(canvas.Canvas):
         self.setStrokeColor(colors.HexColor("#1b5e20"))
         self.setLineWidth(1)
         self.line(40, 40, 555, 40)
-self.drawString(40, 25, "AI Thermal Tomato Analyzer — LeafOptiAI Research Team (HPU2)")
+        # SỬA LỖI 3: Căn lề lại drawString
+        self.drawString(40, 25, "AI Thermal Tomato Analyzer — LeafOptiAI Research Team (HPU2)")
         self.drawRightString(555, 25, f"Page {self._pageNumber} of {page_count}")
         self.restoreState()
 
@@ -282,4 +286,7 @@ def create_pdf_report(output_pdf_path: str, metrics: Dict[str, Any], orig_img_pa
             fontName='Helvetica-Oblique', 
             fontSize=9.5, 
             textColor=colors.HexColor("#333333"), 
-            alignment=1,
+            alignment=1, 
+            spaceAfter=14
+        )
+        # Mã còn lại có thể viết tiếp tại đây...
