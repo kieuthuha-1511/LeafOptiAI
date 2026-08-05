@@ -3,7 +3,7 @@
 AI THERMAL TOMATO ANALYZER - WEB BACKEND SERVER
 ===============================================================================
 Đơn vị phát triển : LeafOptiAI Research Team
-Trường            : Hanoi Pedagogical University 2 (HPU2)
+Trường             : Hanoi Pedagogical University 2 (HPU2)
 ===============================================================================
 """
 
@@ -25,7 +25,12 @@ import ultralytics
 # ==========================================
 torch.set_grad_enabled(False)
 torch.set_num_threads(1)
-torch.serialization.add_safe_globals([ultralytics.nn.tasks.SegmentationModel])
+
+# Cấp quyền nạp mô hình Object Detection & Segmentation để tránh lỗi WeightsUnpickler
+torch.serialization.add_safe_globals([
+    ultralytics.nn.tasks.DetectionModel,
+    ultralytics.nn.tasks.SegmentationModel
+])
 
 from flask import (
     Flask,
@@ -35,6 +40,8 @@ from flask import (
     send_from_directory,
     url_for
 )
+
+from models.predict import predict_thermal_image
 
 import cv2
 import numpy as np
@@ -103,6 +110,7 @@ ALL_PROJECT_FOLDERS = [
     Config.EXCEL_FOLDER
 ]
 
+# Tạo các thư mục lưu trữ nếu chưa tồn tại
 for directory in ALL_PROJECT_FOLDERS:
     os.makedirs(directory, exist_ok=True)
 
@@ -191,10 +199,13 @@ class ThermalImageAnalyzer:
             
             bounding_boxes = []
             for cnt in valid_contours:
+                # Tính toán và trích xuất Bounding Box
                 x, y, bw, bh = cv2.boundingRect(cnt)
                 bounding_boxes.append({"x": x, "y": y, "width": bw, "height": bh})
+                # Vẽ Bounding Box (Màu đỏ)
                 cv2.rectangle(seg_bgr, (x, y), (x + bw, y + bh), (0, 0, 255), 2)
             
+            # Vẽ đường viền Contour (Màu xanh sáng)
             cv2.drawContours(seg_bgr, valid_contours, -1, (0, 255, 64), 2)
             
             mask_leaf_pixels = int(np.count_nonzero(binary_mask))
@@ -219,7 +230,7 @@ analyzer = ThermalImageAnalyzer(Config.MODEL_PATH)
 
 
 # ===============================================================================
-# REPORTLAB PDF GENERATOR (CHUẨN GIAO DIỆN HPU2)
+# REPORTLAB PDF GENERATOR (CHUẨN 100% GIAO DIỆN MẪU HPU2)
 # ===============================================================================
 class NumberedCanvas(canvas.Canvas):
     def __init__(self, *args, **kwargs):
@@ -287,7 +298,7 @@ def create_pdf_report(output_pdf_path: str, metrics: Dict[str, Any], orig_img_pa
         elements.append(Paragraph("LeafOptiAI Research Team — Hanoi Pedagogical University 2 (HPU2)", sub_style))
         elements.append(HRFlowable(width="100%", thickness=1.5, color=PRIMARY_COLOR, spaceAfter=15))
         
-        # Bảng tổng hợp chỉ số
+        # Bảng dữ liệu thông số
         table_data = [
             [Paragraph("<b>Metric Parameter</b>", styles['Normal']), Paragraph("<b>Value</b>", styles['Normal'])],
             ["Detected Regions", str(metrics.get("detected_regions", 0))],
@@ -311,7 +322,7 @@ def create_pdf_report(output_pdf_path: str, metrics: Dict[str, Any], orig_img_pa
         elements.append(t)
         elements.append(Spacer(1, 20))
         
-        # Bảng so sánh 3 ảnh
+        # Bảng trình bày 3 ảnh kết quả
         img_w, img_h = 150, 115
         img_row = []
         for path in [orig_img_path, seg_img_path, mask_img_path]:
@@ -377,7 +388,7 @@ def analyze():
         cv2.imwrite(seg_path, seg_bgr)
         cv2.imwrite(binary_path, binary_mask)
 
-        # Tạo PDF báo cáo
+        # Tạo file PDF báo cáo
         pdf_filename = f"report_{unique_id}.pdf"
         pdf_path = os.path.join(Config.PDF_FOLDER, pdf_filename)
         create_pdf_report(pdf_path, metrics, orig_path, seg_path, binary_path)
