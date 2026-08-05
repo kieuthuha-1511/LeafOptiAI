@@ -3,8 +3,8 @@
 AI THERMAL TOMATO ANALYZER - DEEP LEARNING PREDICTION MODULE
 ===============================================================================
 Mô tả: 
-Chạy suy luận (Inference) bằng mô hình YOLO Segmentation. 
-Tạo ảnh overlay, mask nhị phân và trích xuất tham số nông nghiệp.
+Chạy suy luận (Inference) bằng mô hình YOLO Object Detection. 
+Tạo ảnh overlay bounding box, mask nhị phân dạng hình chữ nhật và trích xuất tham số nông nghiệp.
 ===============================================================================
 """
 
@@ -32,7 +32,7 @@ def get_yolo_model(model_path: str):
     
     if _model_instance is None or _current_model_path != model_path:
         logger.info(f"Đang tải mô hình học sâu từ: {model_path} ...")
-        # Khởi tạo mô hình YOLO Segmentation
+        # Khởi tạo mô hình YOLO Object Detection
         _model_instance = YOLO(model_path)
         _current_model_path = model_path
         
@@ -47,9 +47,9 @@ def get_yolo_model(model_path: str):
 # ==========================================
 def predict_thermal_image(image_path: str, model_path: str):
     """
-    Đọc ảnh nhiệt, chạy qua mô hình YOLO-Seg và trả về:
-    - Ảnh BGR đã vẽ Overlay (Segmentation)
-    - Ảnh Grayscale (Binary Mask)
+    Đọc ảnh nhiệt, chạy qua mô hình YOLO-Detect và trả về:
+    - Ảnh BGR đã vẽ Overlay Bounding Box (Object Detection)
+    - Ảnh Grayscale (Binary Mask dạng Bounding Box)
     - Bộ chỉ số đo đạc (Metrics Dictionary)
     """
     
@@ -67,7 +67,7 @@ def predict_thermal_image(image_path: str, model_path: str):
     # 3. GỌI MÔ HÌNH VÀ DỰ ĐOÁN (INFERENCE)
     model = get_yolo_model(model_path)
     
-    # Tắt tính năng vẽ ảnh mặc định của Ultralytics để ta tự vẽ custom UI (đẹp hơn)
+    # Tắt tính năng vẽ ảnh mặc định của Ultralytics để tự vẽ custom UI
     results = model.predict(
         source=orig_img,
         conf=CONF_THRESHOLD,
@@ -76,7 +76,7 @@ def predict_thermal_image(image_path: str, model_path: str):
         verbose=False
     )
     
-    result = results[0] # Lấy kết quả của bức ảnh đầu tiên (do ta chỉ truyền 1 ảnh)
+    result = results[0] # Lấy kết quả của bức ảnh đầu tiên
     
     # 4. TẠO CÁC BIẾN KẾT QUẢ KHỞI TẠO TRỐNG
     binary_mask = np.zeros((h, w), dtype=np.uint8)
@@ -85,44 +85,43 @@ def predict_thermal_image(image_path: str, model_path: str):
     detected_regions = 0
     mean_conf = 0.0
     
-    # 5. XỬ LÝ KẾT QUẢ PHÂN ĐOẠN (MASK & BOUNDING BOX)
-    if result.masks is not None and result.boxes is not None:
+    # 5. XỬ LÝ KẾT QUẢ VÙNG PHÁT HIỆN (BOUNDING BOXES)
+    if result.boxes is not None and len(result.boxes) > 0:
         detected_regions = len(result.boxes)
         
-        # Tính toán độ tin cậy trung bình (Thang đo 0.0 -> 1.0 để Frontend xử lý)
+        # Tính toán độ tin cậy trung bình (Thang đo 0.0 -> 1.0)
         confs = result.boxes.conf.cpu().numpy()
         if len(confs) > 0:
             mean_conf = float(np.mean(confs))
         
-        # YOLO trả về tọa độ các đường viền đa giác (Polygons) của tán lá
-        # Quy mô (scale) tự động khớp với kích thước ảnh gốc
-        for xy in result.masks.xy:
-            # Chuyển đổi tọa độ sang int32 theo chuẩn của OpenCV
-            pts = np.array(xy, dtype=np.int32)
+        overlay = orig_img.copy()
+        
+        # Duyệt qua các khung hình chữ nhật phát hiện được
+        for box in result.boxes:
+            # Lấy tọa độ [x1, y1, x2, y2]
+            x1, y1, x2, y2 = map(int, box.xyxy[0].cpu().numpy())
             
-            # Tô màu trắng (255) cho vùng bên trong đa giác trên Binary Mask
-            cv2.fillPoly(binary_mask, [pts], 255)
+            # Tô màu trắng (255) cho vùng Bounding Box trên Binary Mask
+            cv2.rectangle(binary_mask, (x1, y1), (x2, y2), 255, -1)
             
+            # Tô màu xanh lá vào vùng Bounding Box trên ảnh overlay
+            cv2.rectangle(overlay, (x1, y1), (x2, y2), (36, 179, 0), -1)
+        
         # ==============================================
         # 6. VẼ HIỆU ỨNG OVERLAY DẠ QUANG CHO ẢNH KẾT QUẢ
         # ==============================================
-        # Tìm đường viền chuẩn xác từ Binary Mask vừa tạo
-        contours, _ = cv2.findContours(binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        
-        overlay = orig_img.copy()
-        # Tô màu xanh lá vào vùng tán cây trên ảnh overlay
-        cv2.drawContours(overlay, contours, -1, (36, 179, 0), -1)
-        
-        # Hòa trộn màu (Alpha Blending) tạo độ trong suốt 40% cho vùng phủ
+        # Hòa trộn màu (Alpha Blending) tạo độ trong suốt 40% cho vùng Bounding Box
         cv2.addWeighted(overlay, 0.4, seg_img, 0.6, 0, seg_img)
         
-        # Vẽ nét đứt/liền bo viền sắc nét màu xanh lá mạ
-        cv2.drawContours(seg_img, contours, -1, (0, 255, 64), 2)
+        # Vẽ khung viền sắc nét màu xanh lá mạ
+        for box in result.boxes:
+            x1, y1, x2, y2 = map(int, box.xyxy[0].cpu().numpy())
+            cv2.rectangle(seg_img, (x1, y1), (x2, y2), (0, 255, 64), 2)
 
     # 7. TÍNH TOÁN CÁC CHỈ SỐ NÔNG NGHIỆP
     mask_pixels = int(np.count_nonzero(binary_mask))
     coverage = round((mask_pixels / total_pixels) * 100, 2)
-    leaf_area = mask_pixels # Sử dụng trực tiếp pixels thay vì quy đổi ra cm2
+    leaf_area = mask_pixels # Sử dụng trực tiếp pixels Bounding Box
     
     # Đóng gói dữ liệu (inference_time sẽ được app.py tự động đo và ghi đè thêm)
     metrics = {
