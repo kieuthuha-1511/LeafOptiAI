@@ -3,7 +3,8 @@
 AI THERMAL TOMATO ANALYZER - WEB BACKEND SERVER
 ===============================================================================
 Đơn vị phát triển : LeafOptiAI Research Team
-Trường             : Hanoi Pedagogical University 2 (HPU2)
+Trường            : Hanoi Pedagogical University 2 (HPU2)
+Mô tả             : Web Backend hỗ trợ YOLO Object Detection & Flask
 ===============================================================================
 """
 
@@ -27,7 +28,7 @@ torch.set_grad_enabled(False)  # Tắt tính năng tính đạo hàm -> Tiết k
 torch.set_num_threads(1)       # Ép PyTorch chạy 1 luồng -> Chống vọt RAM
 # THÊM CỤM NÀY ĐỂ FIX LỖI 502 (PYTORCH 2.6)
 # ==========================================
-torch.serialization.add_safe_globals([ultralytics.nn.tasks.SegmentationModel])
+torch.serialization.add_safe_globals([ultralytics.nn.tasks.DetectionModel])
 
 from flask import (
     Flask,
@@ -37,8 +38,8 @@ from flask import (
     send_from_directory,
     url_for
 )
-# Import bộ phân tích AI thực tế của bạn
-from models.predict import predict_thermal_image # (Thay đổi tên hàm/class cho khớp với code thật của bạn)
+# Import bộ phân tích AI Object Detection
+from models.predict import predict_thermal_image
 
 import cv2
 import numpy as np
@@ -215,7 +216,7 @@ analyzer = ThermalImageAnalyzer(Config.MODEL_PATH)
 
 
 # ===============================================================================
-# REPORTLAB PDF GENERATOR (CHUẨN 100% GIAO DIỆN MẪU ẢNH 1)
+# REPORTLAB PDF GENERATOR
 # ===============================================================================
 class NumberedCanvas(canvas.Canvas):
     def __init__(self, *args, **kwargs):
@@ -349,7 +350,7 @@ def create_pdf_report(output_pdf_path: str, metrics: Dict[str, Any], orig_img_pa
         
         img_table_data = [
             [img_orig, img_seg, img_mask],
-            [Paragraph("Original Image", bold_style), Paragraph("Segmentation Result", bold_style), Paragraph("Binary Mask", bold_style)]
+            [Paragraph("Original Image", bold_style), Paragraph("Detection Result", bold_style), Paragraph("Binary Mask", bold_style)]
         ]
         
         img_table = Table(img_table_data, colWidths=[171, 171, 171])
@@ -389,7 +390,7 @@ def create_excel_report(output_path: str, history_items: List[Dict[str, Any]]) -
             ws["A2"].font = Font(name="Segoe UI", size=9, italic=True, color="555555")
             ws["A2"].alignment = Alignment(horizontal="center", vertical="center")
 
-            headers = ["STT", "Tên File Ảnh", "Thời Gian", "Diện Tích Lá (px)", "Độ Phủ (%)", "Độ Tin Cậy (%)", "Thời Gian Xử Lý (ms)"]
+            headers = ["STT", "Tên File Ảnh", "Thời Gian", "Diện Tích (px)", "Độ Phủ (%)", "Độ Tin Cậy (%)", "Thời Gian Xử Lý (ms)"]
             
             header_fill = PatternFill(start_color="1B5E20", end_color="1B5E20", fill_type="solid")
             header_font = Font(name="Segoe UI", size=10, bold=True, color="FFFFFF")
@@ -447,7 +448,7 @@ def create_excel_report(output_path: str, history_items: List[Dict[str, Any]]) -
         else:
             with open(output_path, mode='w', newline='', encoding='utf-8-sig') as f:
                 writer = csv.writer(f)
-                writer.writerow(["STT", "Tên File Ảnh", "Thời Gian", "Diện Tích Lá (px)", "Độ Phủ (%)", "Độ Tin Cậy (%)", "Thời Gian Xử Lý (ms)"])
+                writer.writerow(["STT", "Tên File Ảnh", "Thời Gian", "Diện Tích (px)", "Độ Phủ (%)", "Độ Tin Cậy (%)", "Thời Gian Xử Lý (ms)"])
                 for idx, item in enumerate(history_items, 1):
                     conf = item.get('confidence', 0)
                     conf_pct = round(conf * 100 if conf <= 1.0 else conf, 1)
@@ -467,13 +468,9 @@ def create_excel_report(output_path: str, history_items: List[Dict[str, Any]]) -
 
 
 # ===============================================================================
-# HÀM ĐỊNH VỊ ẢNH THÔNG MINH - TÌM TẤT CẢ THƯ MỤC CON
+# HÀM ĐỊNH VỊ ẢNH THÔNG MINH
 # ===============================================================================
 def locate_image_file(raw_input: Any, folder_keywords: List[str], file_keywords: List[str]) -> str:
-    """
-    1. Nếu có tên file: Quét toàn bộ thư mục dự án (BASE_DIR) để tìm chính xác file.
-    2. Nếu không tìm thấy: Tìm file ảnh mới nhất theo từ khóa trong tất cả thư mục.
-    """
     if raw_input:
         path_str = unquote(urlparse(str(raw_input)).path)
         clean_name = os.path.basename(path_str)
@@ -484,7 +481,6 @@ def locate_image_file(raw_input: Any, folder_keywords: List[str], file_keywords:
                     if os.path.isfile(full_p) and os.path.getsize(full_p) > 0:
                         return full_p
 
-    # Dự phòng: Duyệt các thư mục ảnh chuẩn
     search_dirs = [
         Config.ORIGINAL_FOLDER,
         Config.SEGMENTATION_FOLDER,
@@ -536,19 +532,15 @@ def analyze():
         seg_name = f"thermal_seg_{token}.png"
         mask_name = f"thermal_mask_{token}.png"
         
-        # Đường dẫn lưu CHỈ vào các thư mục con tương ứng
         orig_path = os.path.join(app.config['ORIGINAL_FOLDER'], orig_name)
         seg_path = os.path.join(app.config['SEGMENTATION_FOLDER'], seg_name)
         mask_path = os.path.join(app.config['BINARY_FOLDER'], mask_name)
         
-        # Lưu file vào thư mục con chuẩn
         file.save(orig_path)
         seg_bgr, binary_mask, metrics = analyzer.process(orig_path)
         
         cv2.imwrite(seg_path, seg_bgr)
         cv2.imwrite(mask_path, binary_mask)
-        
-        # Đã loại bỏ các lệnh ghi đè dư thừa ra ngoài thư mục results/ và uploads/
         
         return jsonify({
             'success': True,
@@ -601,7 +593,6 @@ def export_pdf():
             seg_raw = images.get('segmentation', '')
             mask_raw = images.get('binary_mask', '')
 
-        # Tìm kiếm chính xác trong tất cả thư mục dự án
         orig_path = locate_image_file(orig_raw, ['original', 'upload'], ['orig', 'upload'])
         seg_path = locate_image_file(seg_raw, ['segmentation'], ['seg'])
         mask_path = locate_image_file(mask_raw, ['binary'], ['mask', 'bin'])
