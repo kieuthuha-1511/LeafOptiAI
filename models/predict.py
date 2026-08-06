@@ -56,7 +56,7 @@ def predict_thermal_image(image_path: str, model_path: str):
     """
     
     # 1. CẤU HÌNH THAM SỐ
-    CONF_THRESHOLD = 0.6        # Ngưỡng tin cậy (Confidence score) >= 60%
+    CONF_THRESHOLD = 0.25        # Ngưỡng tin cậy (Confidence score) >= 60%
     
     # 2. ĐỌC ẢNH ĐẦU VÀO
     orig_img = cv2.imread(image_path)
